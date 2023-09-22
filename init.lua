@@ -86,7 +86,7 @@ require('lazy').setup({
 
       -- Useful status updates for LSP
       -- NOTE: `opts = {}` is the same as calling `require('fidget').setup({})`
-      { 'j-hui/fidget.nvim', tag = 'legacy', opts = {} },
+      { 'j-hui/fidget.nvim',       tag = 'legacy', opts = {} },
 
       -- Additional lua configuration, makes nvim stuff amazing!
       'folke/neodev.nvim',
@@ -110,7 +110,7 @@ require('lazy').setup({
   },
 
   -- Useful plugin to show you pending keybinds.
-  { 'folke/which-key.nvim', opts = {} },
+  { 'folke/which-key.nvim',  opts = {} },
   {
     -- Adds git related signs to the gutter, as well as utilities for managing changes
     'lewis6991/gitsigns.nvim',
@@ -124,7 +124,8 @@ require('lazy').setup({
         changedelete = { text = '~' },
       },
       on_attach = function(bufnr)
-        vim.keymap.set('n', '<leader>gp', require('gitsigns').prev_hunk, { buffer = bufnr, desc = '[G]o to [P]revious Hunk' })
+        vim.keymap.set('n', '<leader>gp', require('gitsigns').prev_hunk,
+          { buffer = bufnr, desc = '[G]o to [P]revious Hunk' })
         vim.keymap.set('n', '<leader>gn', require('gitsigns').next_hunk, { buffer = bufnr, desc = '[G]o to [N]ext Hunk' })
         vim.keymap.set('n', '<leader>ph', require('gitsigns').preview_hunk, { buffer = bufnr, desc = '[P]review [H]unk' })
       end,
@@ -199,11 +200,11 @@ require('lazy').setup({
   },
   {
     'epwalsh/obsidian.nvim'
-  }
+  },
   -- NOTE: Next Step on Your Neovim Journey: Add/Configure additional "plugins" for kickstart
   --       These are some example plugins that I've included in the kickstart repository.
   --       Uncomment any of the lines below to enable them.
-  -- require 'kickstart.plugins.autoformat',
+  require 'kickstart.plugins.autoformat',
   -- require 'kickstart.plugins.debug',
 
   -- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
@@ -319,10 +320,11 @@ vim.keymap.set('n', '<leader>sd', require('telescope.builtin').diagnostics, { de
 -- See `:help nvim-treesitter`
 require('nvim-treesitter.configs').setup {
   -- Add languages to be installed here that you want installed for treesitter
-  ensure_installed = { 'markdown', 'c', 'cpp', 'go', 'lua', 'python', 'rust', 'tsx', 'javascript', 'typescript', 'vimdoc', 'vim', 'json', 'yaml' },
+  ensure_installed = { 'markdown', 'c', 'cpp', 'go', 'lua', 'python', 'rust', 'tsx', 'javascript', 'typescript',
+    'vimdoc', 'vim', 'json', 'yaml' },
 
   -- Autoinstall languages that are not installed. Defaults to false (but you can change for yourself!)
-  auto_install = false,
+  auto_install = true,
 
   highlight = { enable = true },
   indent = { enable = true },
@@ -389,23 +391,22 @@ vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagn
 
 -- [[ Configure LSP ]]
 -- bemol configuration
-function bemol()
- local bemol_dir = vim.fs.find({ '.bemol' }, { upward = true, type = 'directory'})[1]
- local ws_folders_lsp = {}
- if bemol_dir then
-  local file = io.open(bemol_dir .. '/ws_root_folders', 'r')
-  if file then
-
-   for line in file:lines() do
-    table.insert(ws_folders_lsp, line)
-   end
-   file:close()
+local bemol = function()
+  local bemol_dir = vim.fs.find({ '.bemol' }, { upward = true, type = 'directory' })[1]
+  local ws_folders_lsp = {}
+  if bemol_dir then
+    local file = io.open(bemol_dir .. '/ws_root_folders', 'r')
+    if file then
+      for line in file:lines() do
+        table.insert(ws_folders_lsp, line)
+      end
+      file:close()
+    end
   end
- end
 
- for _, line in ipairs(ws_folders_lsp) do
-  vim.lsp.buf.add_workspace_folder(line)
- end
+  for _, line in ipairs(ws_folders_lsp) do
+    vim.lsp.buf.add_workspace_folder(line)
+  end
 end
 --  This function gets run when an LSP connects to a particular buffer.
 local on_attach = function(_, bufnr)
@@ -421,11 +422,11 @@ local on_attach = function(_, bufnr)
     end
 
     vim.keymap.set('n', keys, func, { buffer = bufnr, desc = desc })
-    bemol()
   end
 
   nmap('<leader>rn', vim.lsp.buf.rename, '[R]e[n]ame')
   nmap('<leader>ca', vim.lsp.buf.code_action, '[C]ode [A]ction')
+  nmap('<leader>cf', vim.lsp.buf.format, '[C]ode [F]ormat')
 
   nmap('gd', vim.lsp.buf.definition, '[G]oto [D]efinition')
   nmap('gr', require('telescope.builtin').lsp_references, '[G]oto [R]eferences')
@@ -445,11 +446,11 @@ local on_attach = function(_, bufnr)
   nmap('<leader>wl', function()
     print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
   end, '[W]orkspace [L]ist Folders')
-
   -- Create a command `:Format` local to the LSP buffer
   vim.api.nvim_buf_create_user_command(bufnr, 'Format', function(_)
     vim.lsp.buf.format()
   end, { desc = 'Format current buffer with LSP' })
+  bemol()
 end
 
 -- Enable the following language servers
@@ -463,7 +464,7 @@ end
 local servers = {
   -- clangd = {},
   -- gopls = {},
-  -- pyright = {},
+  pyright = {},
   -- rust_analyzer = {},
   -- tsserver = {},
   -- html = { filetypes = { 'html', 'twig', 'hbs'} },
@@ -474,16 +475,6 @@ local servers = {
       telemetry = { enable = false },
     },
   },
-  pylsp = {
-    pylsp = {
-        plugins = {
-          pycodestyle = {
-            ignore = {'W391', 'E501'},
-            maxLineLength = 100
-          }
-        }
-    }
-  }
 }
 
 -- Setup neovim lua configuration
@@ -492,7 +483,6 @@ require('neodev').setup()
 -- nvim-cmp supports additional completion capabilities, so broadcast that to servers
 local capabilities = vim.lsp.protocol.make_client_capabilities()
 capabilities = require('cmp_nvim_lsp').default_capabilities(capabilities)
-
 -- Ensure the servers above are installed
 local mason_lspconfig = require 'mason-lspconfig'
 
@@ -566,7 +556,8 @@ obsidian.setup {
 
   "epwalsh/obsidian.nvim",
   lazy = true,
-  event = { "BufReadPre /Users/fsakakib/Git/code.amazon.com/FsakakibObsidianNotes/src/FsakakibObsidianNotes/personal_vault/**.md"},
+  event = {
+    "BufReadPre /Users/fsakakib/Git/code.amazon.com/FsakakibObsidianNotes/src/FsakakibObsidianNotes/personal_vault/**.md" },
   -- If you want to use the home shortcut '~' here you need to call 'vim.fn.expand':
   -- event = { "BufReadPre " .. vim.fn.expand "~" .. "/my-vault/**.md" },
   dependencies = {
@@ -584,112 +575,112 @@ obsidian.setup {
     time_format = "%H:%M",
   },
 
-    mappings = {
-    },
-    -- Optional, if you keep notes in a specific subdirectory of your vault.
-    notes_subdir = "notes",
+  mappings = {
+  },
+  -- Optional, if you keep notes in a specific subdirectory of your vault.
+  notes_subdir = "notes",
 
-    -- Optional, set the log level for obsidian.nvim. This is an integer corresponding to one of the log
-    -- levels defined by "vim.log.levels.*" or nil, which is equivalent to DEBUG (1).
-    log_level = vim.log.levels.DEBUG,
+  -- Optional, set the log level for obsidian.nvim. This is an integer corresponding to one of the log
+  -- levels defined by "vim.log.levels.*" or nil, which is equivalent to DEBUG (1).
+  log_level = vim.log.levels.DEBUG,
 
-    daily_notes = {
-      -- Optional, if you keep daily notes in a separate directory.
-      folder = "notes/dailies",
-      -- Optional, if you want to change the date format for daily notes.
-      date_format = "%Y-%m-%d"
-    },
+  daily_notes = {
+    -- Optional, if you keep daily notes in a separate directory.
+    folder = "notes/dailies",
+    -- Optional, if you want to change the date format for daily notes.
+    date_format = "%Y-%m-%d"
+  },
 
-    -- Optional, completion.
-    completion = {
-      -- If using nvim-cmp, otherwise set to false
-      nvim_cmp = true,
-      -- Trigger completion at 2 chars
-      min_chars = 2,
-      -- Where to put new notes created from completion. Valid options are
-      --  * "current_dir" - put new notes in same directory as the current buffer.
-      --  * "notes_subdir" - put new notes in the default notes subdirectory.
-      new_notes_location = "current_dir",
+  -- Optional, completion.
+  completion = {
+    -- If using nvim-cmp, otherwise set to false
+    nvim_cmp = true,
+    -- Trigger completion at 2 chars
+    min_chars = 2,
+    -- Where to put new notes created from completion. Valid options are
+    --  * "current_dir" - put new notes in same directory as the current buffer.
+    --  * "notes_subdir" - put new notes in the default notes subdirectory.
+    new_notes_location = "current_dir",
 
-      -- Whether to add the output of the node_id_func to new notes in autocompletion.
-      -- E.g. "[[Foo" completes to "[[foo|Foo]]" assuming "foo" is the ID of the note.
-      prepend_note_id = true
-    },
+    -- Whether to add the output of the node_id_func to new notes in autocompletion.
+    -- E.g. "[[Foo" completes to "[[foo|Foo]]" assuming "foo" is the ID of the note.
+    prepend_note_id = true
+  },
 
 
-    -- Optional, customize how names/IDs for new notes are created.
-    note_id_func = function(title)
-      -- Create note IDs in a Zettelkasten format with a timestamp and a suffix.
-      -- In this case a note with the title 'My new note' will given an ID that looks
-      -- like '1657296016-my-new-note', and therefore the file name '1657296016-my-new-note.md'
-      local suffix = ""
-      if title ~= nil then
-        -- If title is given, transform it into valid file name.
-        suffix = title:gsub(" ", "-"):gsub("[^A-Za-z0-9-]", ""):lower()
-      else
-        -- If title is nil, just add 4 random uppercase letters to the suffix.
-        for _ = 1, 4 do
-          suffix = suffix .. string.char(math.random(65, 90))
-        end
+  -- Optional, customize how names/IDs for new notes are created.
+  note_id_func = function(title)
+    -- Create note IDs in a Zettelkasten format with a timestamp and a suffix.
+    -- In this case a note with the title 'My new note' will given an ID that looks
+    -- like '1657296016-my-new-note', and therefore the file name '1657296016-my-new-note.md'
+    local suffix = ""
+    if title ~= nil then
+      -- If title is given, transform it into valid file name.
+      suffix = title:gsub(" ", "-"):gsub("[^A-Za-z0-9-]", ""):lower()
+    else
+      -- If title is nil, just add 4 random uppercase letters to the suffix.
+      for _ = 1, 4 do
+        suffix = suffix .. string.char(math.random(65, 90))
       end
-      return tostring(os.time()) .. "-" .. suffix
-    end,
+    end
+    return tostring(os.time()) .. "-" .. suffix
+  end,
 
-    -- Optional, set to true if you don't want obsidian.nvim to manage frontmatter.
-    disable_frontmatter = false,
+  -- Optional, set to true if you don't want obsidian.nvim to manage frontmatter.
+  disable_frontmatter = false,
 
-    -- Optional, alternatively you can customize the frontmatter data.
-    note_frontmatter_func = function(note)
-      -- This is equivalent to the default frontmatter function.
-      local out = { id = note.id, aliases = note.aliases, tags = note.tags }
-      -- `note.metadata` contains any manually added fields in the frontmatter.
-      -- So here we just make sure those fields are kept in the frontmatter.
-      if note.metadata ~= nil and require("obsidian").util.table_length(note.metadata) > 0 then
-        for k, v in pairs(note.metadata) do
-          out[k] = v
-        end
+  -- Optional, alternatively you can customize the frontmatter data.
+  note_frontmatter_func = function(note)
+    -- This is equivalent to the default frontmatter function.
+    local out = { id = note.id, aliases = note.aliases, tags = note.tags }
+    -- `note.metadata` contains any manually added fields in the frontmatter.
+    -- So here we just make sure those fields are kept in the frontmatter.
+    if note.metadata ~= nil and require("obsidian").util.table_length(note.metadata) > 0 then
+      for k, v in pairs(note.metadata) do
+        out[k] = v
       end
-      return out
-    end,
+    end
+    return out
+  end,
 
-    
 
-    -- Optional, customize the backlinks interface.
-    backlinks = {
-      -- The default height of the backlinks pane.
-      height = 10,
-      -- Whether or not to wrap lines.
-      wrap = true,
-    },
 
-    -- Optional, by default when you use `:ObsidianFollowLink` on a link to an external
-    -- URL it will be ignored but you can customize this behavior here.
-    follow_url_func = function(url)
-      -- Open the URL in the default web browser.
-      vim.fn.jobstart({"open", url})  -- Mac OS
-      -- vim.fn.jobstart({"xdg-open", url})  -- linux
-    end,
+  -- Optional, customize the backlinks interface.
+  backlinks = {
+    -- The default height of the backlinks pane.
+    height = 10,
+    -- Whether or not to wrap lines.
+    wrap = true,
+  },
 
-    -- Optional, set to true if you use the Obsidian Advanced URI plugin.
-    -- https://github.com/Vinzent03/obsidian-advanced-uri
-    use_advanced_uri = true,
+  -- Optional, by default when you use `:ObsidianFollowLink` on a link to an external
+  -- URL it will be ignored but you can customize this behavior here.
+  follow_url_func = function(url)
+    -- Open the URL in the default web browser.
+    vim.fn.jobstart({ "open", url }) -- Mac OS
+    -- vim.fn.jobstart({"xdg-open", url})  -- linux
+  end,
 
-    -- Optional, set to true to force ':ObsidianOpen' to bring the app to the foreground.
-    open_app_foreground = false,
+  -- Optional, set to true if you use the Obsidian Advanced URI plugin.
+  -- https://github.com/Vinzent03/obsidian-advanced-uri
+  use_advanced_uri = true,
 
-    -- Optional, by default commands like `:ObsidianSearch` will attempt to use
-    -- telescope.nvim, fzf-lua, and fzf.nvim (in that order), and use the
-    -- first one they find. By setting this option to your preferred
-    -- finder you can attempt it first. Note that if the specified finder
-    -- is not installed, or if it the command does not support it, the
-    -- remaining finders will be attempted in the original order.
-    finder = "telescope.nvim",
+  -- Optional, set to true to force ':ObsidianOpen' to bring the app to the foreground.
+  open_app_foreground = false,
 
-    -- Optional, determines whether to open notes in a horizontal split, a vertical split,
-    -- or replacing the current buffer (default)
-    -- Accepted values are "current", "hsplit" and "vsplit"
-    open_notes_in = "current"
-  
+  -- Optional, by default commands like `:ObsidianSearch` will attempt to use
+  -- telescope.nvim, fzf-lua, and fzf.nvim (in that order), and use the
+  -- first one they find. By setting this option to your preferred
+  -- finder you can attempt it first. Note that if the specified finder
+  -- is not installed, or if it the command does not support it, the
+  -- remaining finders will be attempted in the original order.
+  finder = "telescope.nvim",
+
+  -- Optional, determines whether to open notes in a horizontal split, a vertical split,
+  -- or replacing the current buffer (default)
+  -- Accepted values are "current", "hsplit" and "vsplit"
+  open_notes_in = "current"
+
 }
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
