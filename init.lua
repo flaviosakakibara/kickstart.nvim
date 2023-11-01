@@ -275,6 +275,14 @@ vim.keymap.set("n", "<leader>pv", vim.cmd.Ex)
 vim.keymap.set('n', 'k', "v:count == 0 ? 'gk' : 'k'", { expr = true, silent = true })
 vim.keymap.set('n', 'j', "v:count == 0 ? 'gj' : 'j'", { expr = true, silent = true })
 
+-- Yank through ssh/tmux whatever...
+local function copy()
+  if vim.v.event.operator == "y" and vim.v.event.regname == "+" then
+    require("osc52").copy_register("+")
+  end
+end
+vim.api.nvim_create_autocmd("TextYankPost", { callback = copy })
+
 -- [[ Highlight on yank ]]
 -- See `:help vim.highlight.on_yank()`
 local highlight_group = vim.api.nvim_create_augroup('YankHighlight', { clear = true })
@@ -339,7 +347,8 @@ vim.keymap.set('n', '<leader>fb', ':Telescope file_browser path=%:p:h select_buf
 -- See `:help nvim-treesitter`
 require('nvim-treesitter.configs').setup {
   -- Add languages to be installed here that you want installed for treesitter
-  ensure_installed = { 'bash', 'markdown', 'c', 'cpp', 'go', 'lua', 'python', 'rust', 'tsx', 'javascript', 'typescript', 'vimdoc', 'vim', 'json', 'yaml' },
+  ensure_installed = { 'bash', 'markdown', 'c', 'cpp', 'go', 'lua', 'python', 'rust', 'tsx', 'javascript', 'typescript',
+    'vimdoc', 'vim', 'json', 'yaml' },
 
   -- Autoinstall languages that are not installed. Defaults to false (but you can change for yourself!)
   auto_install = true,
