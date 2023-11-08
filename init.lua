@@ -218,12 +218,35 @@ require('lazy').setup({
   --
   --    For additional information see: https://github.com/folke/lazy.nvim#-structuring-your-plugins
   -- { import = 'custom.plugins' },
+  {
+    'ojroques/nvim-osc52',
+    config = function()
+      require("osc52").setup({
+        max_length = 0, -- Maximum length of selection (0 for no limit)
+        silent = false, -- Disable message on successful copy
+        trim = false, -- Trim surrounding whitespaces before copy
+      })
+    end,
+  },
 }, {})
+
+function YankRelativePathToOsc()
+  local file_path = vim.fn.expand("%:.")
+  vim.fn.setreg("+", file_path)
+  require("osc52").copy_register("+")
+end
+
+function YankFullPathToOsc()
+  local file_path = vim.fn.expand("%:p")
+  vim.fn.setreg("+", file_path)
+  require("osc52").copy_register("+")
+end
 
 -- [[ Setting options ]]
 -- See `:help vim.o`
 -- NOTE: You can change these options as you wish!
 
+vim.o.incsearch = true
 -- Set highlight on search
 vim.o.hlsearch = false
 
@@ -288,7 +311,10 @@ vim.api.nvim_create_autocmd("TextYankPost", { callback = copy })
 local highlight_group = vim.api.nvim_create_augroup('YankHighlight', { clear = true })
 vim.api.nvim_create_autocmd('TextYankPost', {
   callback = function()
-    vim.highlight.on_yank()
+    vim.highlight.on_yank({
+      higroup = "IncSearch",
+      timeout = 100,
+    })
   end,
   group = highlight_group,
   pattern = '*',
